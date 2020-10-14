@@ -1,0 +1,174 @@
+import codecademylib3_seaborn
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import seaborn as sb
+
+# load and investigate the data here:
+df = pd.read_csv("tennis_stats.csv")
+print(df.head())
+df_year = df.groupby("Year")
+df_2017 = df_year.get_group(2017).sort_values("Ranking")
+print(df_2017.head())
+
+
+# perform exploratory analysis here:
+#Against ranking in 2017
+winnings = df_2017["Winnings"]
+ServGamesPlayed = df_2017["ServiceGamesPlayed"]
+DoubleF = df_2017["DoubleFaults"]
+BrkPtOpps = df_2017["BreakPointsOpportunities"]
+Aces = df_2017["Aces"]
+
+
+
+df_2017_matrix = df_2017.corr()
+sb.set(rc={'figure.figsize':(15,15)})
+sb.heatmap(df_2017_matrix, annot=True)
+plt.show()
+plt.clf()
+#strong corr (>70%): winnings + service games played, double faults, break points opps, aces
+
+
+plt.scatter(Aces, winnings, label = "Aces", alpha=0.7)
+plt.scatter(BrkPtOpps, winnings, label = "Break Point Opportunities", alpha=0.7)
+plt.scatter(DoubleF, winnings, label = "Double Faults", alpha=0.7)
+plt.scatter(ServGamesPlayed, winnings, label = "Service Games Played", alpha=0.7)
+plt.legend()
+plt.xlabel("Winnings")
+plt.show()
+plt.clf()
+
+#Seems like aces and break point opps are the most correlated in 2017
+
+plt.scatter(df["Aces"], df["Winnings"], label = "Aces", alpha=0.7)
+plt.scatter(df["BreakPointsOpportunities"], df["Winnings"], label = "Break Point Opportunities", alpha=0.7)
+plt.scatter(df["DoubleFaults"], df["Winnings"], label = "Double Faults", alpha=0.7)
+plt.scatter(df["ServiceGamesPlayed"], df["Winnings"], label = "Service Games Played", alpha=0.7)
+plt.legend()
+plt.xlabel("Winnings")
+
+plt.show()
+plt.clf()
+#same results for overall winning throughout all years
+
+
+## perform single feature linear regressions here:
+x = df[["Winnings"]]
+print(x.shape)
+y = df[["BreakPointsOpportunities"]]
+print(y.shape)
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, test_size = 0.2, random_state=6)
+
+lm = LinearRegression()
+lm.fit(x_train, y_train)
+
+print(lm.score(x_train, y_train))
+print(lm.score(x_test, y_test))
+
+y_predict = lm.predict(x_test)
+
+plt.scatter(y_test, y_predict)
+plt.xlabel("Break Points Opps Test")
+plt.ylabel("Break Points Opps Predicted")
+plt.show()
+plt.clf()
+
+
+#Break points explain 0.81 of variation, 0.80 in test set
+
+x = df[["Winnings"]]
+y = df[["Aces"]]
+
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, test_size = 0.2, random_state=6)
+
+lm = LinearRegression()
+lm.fit(x_train, y_train)
+
+print(lm.score(x_train, y_train))
+print(lm.score(x_test, y_test))
+
+y_predict = lm.predict(x_test)
+
+plt.scatter(y_test, y_predict)
+plt.xlabel("Aces Test")
+plt.ylabel("Aces Predicted")
+plt.show()
+plt.clf()
+
+#aces only explain 0.65 of variation, 0.58 in test set, not as strong prediction as break points
+
+## perform two feature linear regressions here:
+
+
+features_2 = df[["BreakPointsOpportunities", "Aces"]] 
+winnings = df["Winnings"]
+
+print(features_2.head())
+print(winnings.head())
+
+x_train, x_test, y_train, y_test = train_test_split(features_2, winnings, train_size = 0.8, test_size= 0.2)
+
+
+mlr = LinearRegression()
+mlr.fit(x_train, y_train)
+mlr.coef_
+print(mlr.score(x_train, y_train))
+print(mlr.score(x_test, y_test))
+
+#model a bit better than Brks Pts alone, 0.83
+
+winnings_predicted_2 = mlr.predict(x_test)
+plt.scatter(y_test, winnings_predicted_2)
+plt.title("Break Point Opportunities + Aces")
+plt.xlabel("Features tested")
+plt.ylabel("Features predicted")
+plt.show()
+plt.clf()
+
+## perform multiple feature linear regressions here:
+
+features_3 = df[["BreakPointsOpportunities", "Aces", "FirstServeReturnPointsWon"]] 
+winnings = df["Winnings"]
+
+
+x_train, x_test, y_train, y_test = train_test_split(features_3, winnings, train_size = 0.8, test_size= 0.2)
+
+
+mlr3 = LinearRegression()
+mlr3.fit(x_train, y_train)
+mlr3.coef_
+print(mlr3.score(x_train, y_train))
+print(mlr3.score(x_test, y_test))
+
+
+
+winnings_predicted_3 = mlr3.predict(x_test)
+plt.scatter(y_test, winnings_predicted_3)
+plt.title("Break Point Opportunities + Aces + First Serve Points")
+plt.xlabel("Features tested")
+plt.ylabel("Features predicted")
+plt.show()
+plt.clf()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
